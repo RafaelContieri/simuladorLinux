@@ -20,15 +20,6 @@ const VFS = {
     "/tmp": ["session.tmp"]
 };
 
-/** Último argumento que não é opção (-x), útil para host/URL em ping, curl, etc. */
-function ultimoArgNaoOpcao(args) {
-    for (let i = args.length - 1; i >= 1; i--) {
-        const a = args[i];
-        if (a && !a.startsWith("-")) return a;
-    }
-    return "";
-}
-
 /**
  * @typedef {{ elevated?: boolean }} Ctx
  * @type {{ nome: string, descricao: string, aliases?: string[], exec: (args: string[], linha: string, ctx: Ctx) => string | { stdout: string, clear?: boolean, promptPath?: string } }[]}
@@ -308,32 +299,30 @@ const REGISTRO_COMANDOS = [
         nome: "exit",
         descricao: "Encerra o shell (simulado).",
         exec() {
-           
+            return "logout (simulation — reload the page to reset)";
         }
     },
     {
         nome: "wget",
         descricao: "Download via HTTP (simulado).",
         exec(args) {
-            const url = ultimoArgNaoOpcao(args);
-            if (!url) return "wget: missing URL";
-            return `downloading ${url} -> file (simulation)`;
+            if (!args[1]) return "wget: missing URL";
+            return `downloading ${args[1]} -> file (simulation)`;
         }
     },
     {
         nome: "curl",
         descricao: "Cliente HTTP (simulado).",
         exec(args) {
-            const url = ultimoArgNaoOpcao(args);
-            if (!url) return "curl: try 'curl <URL>'";
-            return `GET ${url} -> 200 OK (body omitted, simulation)`;
+            if (!args[1]) return "curl: try 'curl <URL>'";
+            return `GET ${args[1]} -> 200 OK (body omitted, simulation)`;
         }
     },
     {
         nome: "ping",
         descricao: "Teste ICMP / conectividade (simulado).",
         exec(args) {
-            const host = ultimoArgNaoOpcao(args) || "localhost";
+            const host = args[1] || "localhost";
             return `PING ${host}: 64 bytes (simulation)\n3 packets transmitted, 3 received`;
         }
     },
@@ -341,18 +330,7 @@ const REGISTRO_COMANDOS = [
         nome: "ifconfig",
         aliases: ["ip"],
         descricao: "Interfaces de rede (simulado).",
-        exec(args) {
-            const cmd = (args[0] || "").toLowerCase();
-            if (cmd === "ip") {
-                const sub = (args[1] || "").toLowerCase();
-                if (sub === "route" || sub === "r") {
-                    return "default via 192.168.1.1 dev eth0 proto dhcp (simulation)";
-                }
-                if (sub === "addr" || sub === "a" || sub === "link" || sub === "l" || sub === "") {
-                    return "1: lo: <LOOPBACK> inet 127.0.0.1/8\n2: eth0: <BROADCAST> inet 192.168.1.10/24 (simulation)";
-                }
-                return `Object "${args[1] || "?"}" is unknown, try "ip addr" or "ip route" (simulation).`;
-            }
+        exec() {
             return "eth0: inet 192.168.1.10  netmask 255.255.255.0 (simulation)\nlo: inet 127.0.0.1";
         }
     },
@@ -367,24 +345,22 @@ const REGISTRO_COMANDOS = [
         nome: "ssh",
         descricao: "Shell remoto por SSH (simulado).",
         exec(args) {
-            const h = ultimoArgNaoOpcao(args);
-            if (!h) return "ssh: missing host";
-            return `simulated connection to ${h}`;
+            if (!args[1]) return "ssh: missing host";
+            return `simulated connection to ${args[1]}`;
         }
     },
     {
         nome: "scp",
         descricao: "Cópia segura por SSH (simulado).",
-        exec(args) {
-            if (args.length < 3) return "scp: usage: scp <origem> <destino> (simulation)";
-            return `copied ${args[1]} -> ${args.slice(2).join(" ")} (simulation)`;
+        exec() {
+            return "file copied via scp (simulation)";
         }
     },
     {
         nome: "nslookup",
         descricao: "Consulta DNS (simulado).",
         exec(args) {
-            const h = ultimoArgNaoOpcao(args) || "example.com";
+            const h = args[1] || "example.com";
             return `Server: 8.8.8.8\nName: ${h}\nAddress: 93.184.216.34 (simulation)`;
         }
     },
@@ -392,7 +368,7 @@ const REGISTRO_COMANDOS = [
         nome: "traceroute",
         descricao: "Rota até o host na rede (simulado).",
         exec(args) {
-            const h = ultimoArgNaoOpcao(args) || "example.com";
+            const h = args[1] || "example.com";
             return `traceroute to ${h} (3 hops, simulation)`;
         }
     },
@@ -407,16 +383,14 @@ const REGISTRO_COMANDOS = [
         nome: "host",
         descricao: "Consulta DNS simples por nome (simulado).",
         exec(args) {
-            const h = ultimoArgNaoOpcao(args) || "localhost";
-            return `${h} has address 127.0.0.1 (simulation)`;
+            return `${args[1] || "localhost"} has address 127.0.0.1 (simulation)`;
         }
     },
     {
         nome: "dig",
         descricao: "Consulta DNS detalhada (simulado).",
-        exec(args) {
-            const q = ultimoArgNaoOpcao(args) || "example.com";
-            return `;; ANSWER SECTION:\n${q}. 300 IN A 93.184.216.34 (simulation)`;
+        exec() {
+            return ";; ANSWER SECTION:\nexample.com. 300 IN A 93.184.216.34 (simulation)";
         }
     },
     {
@@ -523,8 +497,8 @@ const commandList = {
     ...Object.fromEntries(REGISTRO_COMANDOS.map((c) => [c.nome, c.descricao]))
 };
 
-/** Ordem no menu lateral: comandos gerais + 10 rede (+ sudo). */
-const SIDEBAR_GERAL = [
+/** Ordem no menu lateral: 30 gerais + 10 rede (+ sudo + outros). */
+const SIDEBAR_GERAL_30 = [
     "help",
     "clear",
     "ls",
@@ -554,13 +528,7 @@ const SIDEBAR_GERAL = [
     "date",
     "uname",
     "history",
-    "exit",
-    "man",
-    "tree",
-    "nano",
-    "apt",
-    "host",
-    "dig"
+    "exit"
 ];
 
 const SIDEBAR_REDE_10 = [
@@ -575,6 +543,8 @@ const SIDEBAR_REDE_10 = [
     "traceroute",
     "route"
 ];
+
+const SIDEBAR_OUTROS_6 = ["man", "tree", "nano", "apt", "host", "dig"];
 
 const input = document.getElementById("commandInput");
 const output = document.getElementById("terminalOutput");
@@ -612,48 +582,12 @@ function updatePromptDisplay(promptPath) {
 
 function fillSidebar() {
     sidebar.innerHTML = "";
-
-    function appendItem(parent, cmd, extraClass) {
+    nomesSidebar.forEach((cmd) => {
         const div = document.createElement("div");
-        div.className = `command-item${extraClass ? ` ${extraClass}` : ""}`;
+        div.className = "command-item";
         div.innerHTML = `<span class='cmd-name'>${escapeHtml(cmd)}</span>: ${escapeHtml(commandList[cmd] || "")}`;
-        parent.appendChild(div);
-    }
-
-    function addSection(title, names, sectionClass, itemExtraClass) {
-        const sec = document.createElement("section");
-        sec.className = `sidebar-section${sectionClass ? ` ${sectionClass}` : ""}`;
-        const h = document.createElement("h3");
-        h.className = "sidebar-section-title";
-        h.innerHTML = title;
-        sec.appendChild(h);
-        const wrap = document.createElement("div");
-        wrap.className = "command-list-section";
-        for (const cmd of names) {
-            appendItem(wrap, cmd, itemExtraClass || "");
-        }
-        sec.appendChild(wrap);
-        sidebar.appendChild(sec);
-    }
-
-    addSection(
-        `Sudo <span class="sidebar-count">1</span>`,
-        ["sudo"],
-        "sidebar-section--sudo",
-        "command-item--sudo"
-    );
-    addSection(
-        `Comandos gerais <span class="sidebar-count">${SIDEBAR_GERAL.length}</span>`,
-        SIDEBAR_GERAL,
-        "sidebar-section--geral",
-        ""
-    );
-    addSection(
-        `Rede <span class="sidebar-count">10</span>`,
-        SIDEBAR_REDE_10,
-        "sidebar-section--rede",
-        ""
-    );
+        sidebar.appendChild(div);
+    });
 }
 
 function initTerminal() {
