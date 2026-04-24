@@ -305,11 +305,25 @@ const REGISTRO_COMANDOS = [
         }
     },
     {
-        nome: "exit",
-        descricao: "Encerra o shell (simulado).",
-        exec() {
-            return "logout (simulation — reload the page to reset)";
-        }
+       "exit": {
+    descricao: "Encerra o shell (simulado).",
+    exec() {
+        const output = document.getElementById('terminalOutput');
+        
+        // Feedback visual para o usuário
+        output.innerHTML += `<div style="color: yellow; margin-top: 10px;">Encrando sessão... Reiniciando em 2 segundos.</div>`;
+        
+        // Bloqueia o input para evitar novos comandos durante o timer
+        document.getElementById('commandInput').disabled = true;
+
+        // Temporizador de 2 segundos (2000ms)
+        setTimeout(() => {
+            window.location.reload(); 
+        }, 2000);
+
+        return "Logout...";
+    }
+}
     },
     {
         nome: "wget",
