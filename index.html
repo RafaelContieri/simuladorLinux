@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Ubuntu Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app">
+
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <div class="brand-text">
+                <span class="brand-title">Linux Terminal</span>
+                <span class="brand-sub">simulator · local</span>
+            </div>
+        </div>
+        <nav class="header-actions" aria-label="Ferramentas">
+            <button
+                type="button"
+                class="btn btn-ghost btn-font-scale"
+                id="btnFontSize"
+                onclick="cyclePresentationFont()"
+                title="Tamanho da fonte para telão / apresentação"
+                aria-label="Alternar tamanho da fonte da página"
+            >
+                <span class="btn-font-scale__aa" aria-hidden="true">Aa</span>
+                <span class="btn-font-scale__step" id="btnFontSizeStep">1/3</span>
+            </button>
+            <button type="button" class="btn btn-ghost" onclick="openModal('modalLog')">Log de comandos</button>
+            <button type="button" class="btn btn-primary" onclick="openModal('modalPrompts')">Prompts</button>
+        </nav>
+    </header>
+
+    <div class="app-body">
+        <aside class="sidebar" aria-label="Referência de comandos">
+            <div class="sidebar-head">
+                <h2 class="sidebar-title">Comandos</h2>
+                <p class="sidebar-hint">Comandos gerais e rede · TAB completa no terminal</p>
+            </div>
+            <div class="command-list" id="sidebarCommands"></div>
+        </aside>
+
+        <section class="workspace" aria-label="Terminal">
+            <div class="terminal-window" onclick="document.getElementById('commandInput').focus()">
+                <div class="terminal-titlebar">
+                    <span class="terminal-dots" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </span>
+                    <span class="terminal-title">user@ubuntu — bash</span>
+                    <span class="terminal-spacer"></span>
+                </div>
+                <div class="terminal-body">
+                    <div id="terminalOutput" class="terminal-scroll">
+                        <div class="terminal-welcome">
+                            <p class="tw-line tw-dim">Bem-vindo ao Ubuntu 22.04.1 LTS (GNU/Linux 5.15.0-generic x86_64)</p>
+                            <p class="tw-line tw-dim">* Documentação: <a href="https://help.ubuntu.com" target="_blank" rel="noopener">help.ubuntu.com</a></p>
+                            <p class="tw-line tw-dim">* Management: <a href="https://landscape.canonical.com" target="_blank" rel="noopener">landscape.canonical.com</a></p>
+                            <p class="tw-line">Commands live in <code>REGISTRO_COMANDOS</code>. <strong>sudo</strong> runs the rest of the line as root — required for <code>apt install/update/…</code>, <code>chmod</code>, and <code>chown</code>.</p>
+                            <p class="tw-line">Type <kbd>help</kbd> for the list. <kbd>Tab</kbd> completes names.</p>
+                        </div>
+                    </div>
+                    <div class="terminal-input-row">
+                        <div class="input-line">
+                            <span class="prompt"><span class="prompt-user">rafael</span><span class="prompt-at">@</span><span class="prompt-host">ubuntu</span><span class="prompt-colon">:</span><span class="prompt-path">~</span><span class="prompt-dollar">$</span></span>
+                            <input type="text" id="commandInput" autofocus spellcheck="false" autocomplete="off" aria-label="Linha de comando">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modalLog" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalLogTitle">
+        <div class="modal-backdrop" onclick="closeModal('modalLog')"></div>
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3 id="modalLogTitle" class="modal-title">Log de comandos</h3>
+                <button type="button" class="modal-close" onclick="closeModal('modalLog')" aria-label="Fechar">&times;</button>
+            </div>
+            <div id="logContent" class="modal-body mono"></div>
+        </div>
+    </div>
+
+    <div id="modalPrompts" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalPromptsTitle">
+        <div class="modal-backdrop" onclick="closeModal('modalPrompts')"></div>
+        <div class="modal-panel modal-panel-wide">
+            <div class="modal-header">
+                <h3 id="modalPromptsTitle" class="modal-title">Prompts de desenvolvimento</h3>
+                <button type="button" class="modal-close" onclick="closeModal('modalPrompts')" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea readonly id="promptArea" class="prompt-textarea" rows="14">
+1. Sou um profissional na área de desenvolvimento... preciso criar um ambiente de desenvolvimento "Simulador de Linux UBUNTO TERMINAL".
+2. Requisitos: HTML, CSS, JS. 30 comandos básicos, 10 de rede. Menu lateral explicativo. Ambiente interativo. Botão de Log e Botão de Prompts. Navbar. Body preto e fonte verde 16px.
+3. Use a funcionalidade do TAB para complementar os comandos.
+
+------------------------------//------------------------------
+
+Ao executar um comando, ele não deve exibir
+ "executando....". Eu quero apenas que exiba o comando e realize o mesmo. Segundo ponto, esse simulador linux deve execcutar
+ cada comando que eu der e funcionar. Sobre o menu lateral, o mesmo deve ter uma barra de rolagem para visualzar os demais comandos
+
+ ------------------------------//------------------------------
+
+ Requisitos: Deve ser utilizado html, css, js para esta simulação
+
+1 - Desenvolver um simulador Linux ubunto terminal
+2 - Esse simulador precisar conter 30 comandos básicos do Linux e 10 comandos de gerenciamento de redes.
+3 - Esse ambiente deve ter um menu lateral explicativo, explicando cada comando desenvolvido, porém de forma resumida.
+4- Deve ser um ambiente interativo, no qual o usuário execute comandos e funcionalidades 
+5 - Deve conter um botão que irá exibir um modal com log de cada comando que o usuário realizar nesse ambiente de simulação
+6 - E por fim, um botão que irá abrir um modal, contendo espaço para mim colocar os prompts que utilizei para o desenvolvimento desse sistema web.
+
+Sobre o front-end. 
+
+NAVBAR: precisa conter os botões mencionados no prompt.
+BODY: Deve ser todo preto, e as fontes na cor verde, no tamanho 16.
+MENU LATERAL (SIDEBAR):  deve conter o título:
+ SIMULADOR LINUX, e abaixo, todos os 40 comandos , explicados de forma resumida para o usuário.
+                </textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

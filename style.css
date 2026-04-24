@@ -1,0 +1,682 @@
+/* Ubuntu-ish terminal simulator — modern shell, classic trace */
+
+:root {
+    --bg-deep: #070a08;
+    --bg-panel: #0c100e;
+    --bg-elevated: #111816;
+    --border-subtle: rgba(57, 255, 20, 0.12);
+    --border-strong: rgba(57, 255, 20, 0.28);
+    --text-primary: #c8f5c4;
+    --text-bright: #39ff14;
+    --text-dim: rgba(200, 245, 196, 0.55);
+    --accent-user: #7ee787;
+    --accent-host: #79c0ff;
+    --accent-path: #ffa657;
+    --accent-warn: #ff7b72;
+    --font-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    --shadow-window: 0 24px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(57, 255, 20, 0.06);
+    --header-h: 3.5rem;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    height: 100%;
+    /* Base rem: sidebar, terminal, modals scale together */
+    font-size: 16px;
+}
+
+html.fs-telao-1 {
+    font-size: 19px;
+}
+
+html.fs-telao-2 {
+    font-size: 22px;
+}
+
+body.app {
+    min-height: 100%;
+    height: 100vh;
+    background: var(--bg-deep);
+    background-image:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(57, 255, 20, 0.08), transparent),
+        linear-gradient(180deg, #0a0f0c 0%, var(--bg-deep) 45%);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ——— Header ——— */
+.app-header {
+    height: var(--header-h);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    background: rgba(10, 14, 12, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    z-index: 20;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-mark {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--text-bright);
+    box-shadow: 0 0 14px var(--text-bright);
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.brand-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+}
+
+.brand-sub {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.btn-font-scale {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding-inline: 0.65rem;
+}
+
+.btn-font-scale__aa {
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: -0.06em;
+    color: var(--text-bright);
+}
+
+.btn-font-scale__step {
+    font-size: 0.65rem;
+    font-weight: 600;
+    opacity: 0.85;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+}
+
+.btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border-color: var(--border-subtle);
+}
+
+.btn-ghost:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+    background: rgba(57, 255, 20, 0.05);
+}
+
+.btn-primary {
+    background: rgba(57, 255, 20, 0.14);
+    color: var(--text-bright);
+    border-color: var(--border-strong);
+}
+
+.btn-primary:hover {
+    background: rgba(57, 255, 20, 0.22);
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.12);
+}
+
+/* ——— Main layout ——— */
+.app-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    max-height: calc(100vh - var(--header-h));
+    padding: 1rem 1rem 1rem 1rem;
+    gap: 1rem;
+}
+
+@media (max-width: 900px) {
+    .app-body {
+        flex-direction: column;
+        padding: 0.75rem;
+    }
+
+    .sidebar {
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 180px;
+        max-height: 38vh;
+    }
+}
+
+/* ——— Sidebar ——— */
+.sidebar {
+    width: min(320px, 34vw);
+    min-width: 240px;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-window);
+    overflow: hidden;
+}
+
+.sidebar-head {
+    padding: 1rem 1.1rem 0.85rem;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+}
+
+.sidebar-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-bright);
+}
+
+.sidebar-hint {
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.command-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.65rem 0.75rem 1rem;
+}
+
+.sidebar-section {
+    margin-bottom: 1rem;
+}
+
+.sidebar-section:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-section-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-host);
+    margin-bottom: 0.45rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-section--geral .sidebar-section-title {
+    color: var(--accent-user);
+}
+
+.sidebar-section--rede .sidebar-section-title {
+    color: var(--accent-host);
+}
+
+.sidebar-section--sudo .sidebar-section-title {
+    color: var(--text-bright);
+}
+
+.sidebar-count {
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+}
+
+.command-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.command-list-section .command-item {
+    margin-bottom: 0;
+}
+
+.command-item--sudo {
+    border-color: rgba(57, 255, 20, 0.22);
+    background: rgba(57, 255, 20, 0.06);
+}
+
+.command-item {
+    padding: 0.55rem 0.65rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.command-item:hover {
+    background: rgba(57, 255, 20, 0.04);
+    border-color: var(--border-subtle);
+}
+
+.cmd-name {
+    font-weight: 600;
+    color: var(--accent-user);
+    font-size: 0.82rem;
+}
+
+/* ——— Terminal workspace ——— */
+.workspace {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-window {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-window);
+    overflow: hidden;
+    cursor: text;
+}
+
+.terminal-titlebar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem 0.85rem;
+    background: rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.terminal-dots {
+    display: flex;
+    gap: 5px;
+}
+
+.terminal-dots span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #444;
+}
+
+.terminal-dots span:nth-child(1) {
+    background: #ff5f57;
+}
+.terminal-dots span:nth-child(2) {
+    background: #febc2e;
+}
+.terminal-dots span:nth-child(3) {
+    background: #28c840;
+}
+
+.terminal-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+}
+
+.terminal-spacer {
+    width: 52px;
+}
+
+.terminal-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1rem 1.1rem 0.5rem;
+    font-size: 0.92rem;
+}
+
+.terminal-input-row {
+    flex-shrink: 0;
+    padding: 0.35rem 1.1rem 1rem;
+    border-top: 1px solid var(--border-subtle);
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.25));
+}
+
+.terminal-welcome {
+    margin-bottom: 0.5rem;
+}
+
+.tw-line {
+    margin-bottom: 0.35rem;
+}
+
+.tw-line.tw-dim {
+    color: var(--text-dim);
+}
+
+.terminal-welcome a {
+    color: var(--accent-host);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(121, 192, 255, 0.35);
+}
+
+.terminal-welcome a:hover {
+    color: #a5d6ff;
+    border-bottom-color: #a5d6ff;
+}
+
+.terminal-welcome code {
+    font-size: 0.85em;
+    padding: 0.12em 0.4em;
+    border-radius: 4px;
+    background: rgba(57, 255, 20, 0.08);
+    color: var(--accent-user);
+    border: 1px solid var(--border-subtle);
+}
+
+.terminal-welcome strong {
+    color: var(--text-bright);
+    font-weight: 600;
+}
+
+.terminal-welcome kbd {
+    font-family: inherit;
+    font-size: 0.82em;
+    padding: 0.1em 0.45em;
+    border-radius: 4px;
+    background: #1a211d;
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+}
+
+/* Output lines (from JS) */
+#terminalOutput > div {
+    margin-bottom: 0.25rem;
+}
+
+.cmd-output {
+    margin: 0.35rem 0 0.65rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text-primary);
+    padding-left: 0.15rem;
+    border-left: 2px solid rgba(57, 255, 20, 0.25);
+    padding-left: 0.65rem;
+}
+
+.cmd-output--error {
+    color: var(--accent-warn) !important;
+    border-left-color: rgba(255, 123, 114, 0.45);
+}
+
+.input-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prompt {
+    flex-shrink: 0;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    gap: 0;
+    text-shadow: 0 0 14px rgba(57, 255, 20, 0.12);
+}
+
+.prompt-user {
+    color: var(--accent-user);
+}
+
+.prompt-at,
+.prompt-colon {
+    color: var(--text-dim);
+}
+
+.prompt-host {
+    color: var(--accent-host);
+}
+
+.prompt-path {
+    color: var(--accent-path);
+    font-weight: 600;
+}
+
+.prompt-dollar {
+    color: var(--text-dim);
+    margin-left: 0.12em;
+}
+
+.cmd-line {
+    margin-bottom: 0.15rem;
+}
+
+#commandInput {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-bright);
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    caret-color: var(--text-bright);
+}
+
+#commandInput::placeholder {
+    color: var(--text-dim);
+}
+
+/* ——— Modals ——— */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal.is-open {
+    display: flex;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 6, 4, 0.72);
+    backdrop-filter: blur(6px);
+}
+
+.modal-panel {
+    position: relative;
+    width: min(520px, 100%);
+    max-height: min(72vh, 560px);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(57, 255, 20, 0.08);
+    animation: modalIn 0.2s ease;
+}
+
+.modal-panel-wide {
+    width: min(720px, 100%);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+}
+
+.modal-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-bright);
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    line-height: 1;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255, 123, 114, 0.12);
+    color: var(--accent-warn);
+}
+
+.modal-body {
+    padding: 1rem 1.1rem 1.15rem;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.modal-body.mono {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+}
+
+.prompt-textarea {
+    width: 100%;
+    min-height: 280px;
+    resize: vertical;
+    background: #050807;
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.prompt-textarea:focus {
+    outline: none;
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.08);
+}
+
+/* ——— Scrollbars ——— */
+.command-list::-webkit-scrollbar,
+.terminal-scroll::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.command-list::-webkit-scrollbar-thumb,
+.terminal-scroll::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(57, 255, 20, 0.2);
+    border-radius: 99px;
+}
+
+.command-list::-webkit-scrollbar-track,
+.terminal-scroll::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
