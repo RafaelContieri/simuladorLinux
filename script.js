@@ -497,54 +497,7 @@ const commandList = {
     ...Object.fromEntries(REGISTRO_COMANDOS.map((c) => [c.nome, c.descricao]))
 };
 
-/** Ordem no menu lateral: 30 gerais + 10 rede (+ sudo + outros). */
-const SIDEBAR_GERAL_30 = [
-    "help",
-    "clear",
-    "ls",
-    "pwd",
-    "cd",
-    "mkdir",
-    "rmdir",
-    "touch",
-    "cat",
-    "echo",
-    "rm",
-    "cp",
-    "mv",
-    "head",
-    "tail",
-    "wc",
-    "grep",
-    "find",
-    "chmod",
-    "chown",
-    "ps",
-    "kill",
-    "top",
-    "df",
-    "du",
-    "whoami",
-    "date",
-    "uname",
-    "history",
-    "exit"
-];
-
-const SIDEBAR_REDE_10 = [
-    "ping",
-    "ifconfig",
-    "netstat",
-    "wget",
-    "curl",
-    "ssh",
-    "scp",
-    "nslookup",
-    "traceroute",
-    "route"
-];
-
-const SIDEBAR_OUTROS_6 = ["man", "tree", "nano", "apt", "host", "dig"];
+const nomesSidebar = ["sudo", ...REGISTRO_COMANDOS.map((c) => c.nome)];
 
 const input = document.getElementById("commandInput");
 const output = document.getElementById("terminalOutput");
@@ -730,3 +683,4 @@ function applySavedFontScale() {
 
 applySavedFontScale();
 initTerminal();
+document.addEventListener('DOMContentLoaded', initTerminal);
